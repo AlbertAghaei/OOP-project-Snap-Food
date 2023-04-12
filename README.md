@@ -1,4 +1,4 @@
-# OOP-progect-Snap-Food
+# OOP-project-Snap-Food
 
 ##members of the team
 Zahra Aghaeipour 401101173
