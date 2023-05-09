@@ -9,5 +9,14 @@ public class Restaurant
     ArrayList<Food> menu = new ArrayList<>();
     ArrayList<Order> restaurantHistory = new ArrayList<>();
     Node location;
-    User owner;
+    Owner owner;
+    Restaurant(String name, ArrayList<String> types, Node location,Owner user )
+    {
+        this.name = name;
+        this.foodTypes = types;
+        this.location = location;
+        this.owner = user;
+        ///read from database the last ID and give the next one to this comment
+        ///write this one in database
+    }
 }
