@@ -9,4 +9,5 @@ public class Normal extends User
         super(username, password, type);
         this.location = location;
     }
+
 }
