@@ -1,2 +1,4 @@
-public class Entrance {
+public class Entrance
+{
+
 }
