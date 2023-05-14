@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 public class Graph {
     static int nodeCount;
     static Map<Node, List<Edge>> graph = new HashMap<>();
-
     public static void readGraph()/////////////////////////////////////
     {
         int counter = 0;
