@@ -18,4 +18,11 @@ abstract public class User
         ///write this one in database
     }
     User(){}
+    public static User findUserByID(int ID)
+    {
+        for(int i=0; i<allUsers.size(); i++)
+            if(allUsers.get(i).ID==ID)
+                return allUsers.get(i);
+        return null;
+    }
 }

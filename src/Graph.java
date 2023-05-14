@@ -101,6 +101,7 @@ public class Graph {
             System.out.println("Connected edges: ");
             for (int i = 0; i < edges.size(); i++)
                 System.out.println("Start: " + edges.get(i).node1.ID + " End: " + edges.get(i).node2.ID + " Weight: " + edges.get(i).weight);
+            ///this must be handled properly in graphical phase
         }
     }
 }

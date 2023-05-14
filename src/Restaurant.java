@@ -19,4 +19,11 @@ public class Restaurant
         ///read from database the last ID and give the next one to this comment
         ///write this one in database
     }
+    public static Restaurant findRestaurantByID(int ID)
+    {
+        for(int i=0; i<restaurants.size(); i++)
+            if(restaurants.get(i).ID==ID)
+                return restaurants.get(i);
+        return null;
+    }
 }
