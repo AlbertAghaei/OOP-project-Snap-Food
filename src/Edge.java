@@ -5,7 +5,7 @@ public class Edge
     static ArrayList<Edge> edges = new ArrayList<>();
     Node node1;
     Node node2;
-    int weight;//
+    int weight;
     int ID;
     Edge(int ID,Node first,Node second, int weight)
     {
