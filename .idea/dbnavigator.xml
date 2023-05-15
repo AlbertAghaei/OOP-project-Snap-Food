@@ -26,6 +26,7 @@
     <open-files />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="d8bb0623-a0fb-4a14-81a7-b9f8f25f5b7d" dataset="jdbc.users" active-filter-id="" />
     <filter-actions connection-id="d8bb0623-a0fb-4a14-81a7-b9f8f25f5b7d" dataset="mysql.component" active-filter-id="" />
     <filter-actions connection-id="d8bb0623-a0fb-4a14-81a7-b9f8f25f5b7d" dataset="jdbc.normal_users" active-filter-id="" />
   </component>
