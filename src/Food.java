@@ -19,4 +19,29 @@ public class Food
         ///read from database the last ID and give the next one to this comment
         ///write this one in database
     }
+    public static void deActiveFood()
+    {
+        //isThereAnyOrderFromThisFood
+    }
+    public static void activeFood()
+    {}
+    public static void SetDiscountFood()
+    {
+        //onlyOneItem & lower than 50%
+    }
+    public static void selectFoodToResponse()
+    {}
+    public static void displayRating()
+    {}
+    public static void displayComments()
+    {}
+    public static void addResponse()
+    {
+        //forEachCommentOnlyOne
+    }
+    public static void editResponse()
+    {
+        //hasAnyResponseFromOwner
+    }
+
 }

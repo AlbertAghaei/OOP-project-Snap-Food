@@ -6,4 +6,8 @@ public class Owner extends User
    {
       super(username, password, type);
    }
+   public static void sortAndPrintRestaurants()
+   {}
+   public static void selectRestaurant()
+   {}
 }
