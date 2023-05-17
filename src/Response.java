@@ -14,7 +14,6 @@ public class Response
         this.commentID = commentID;
         this.owner = user;
     }
-
     public static Response findResponseByID(int ID)
     {
         for(int i=0; i<allResponses.size(); i++)
