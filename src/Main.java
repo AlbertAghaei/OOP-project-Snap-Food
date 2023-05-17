@@ -3,12 +3,12 @@ import java.util.Scanner;
 
 public class Main
 {
+    static Scanner input = new Scanner (System.in);
     public static void main(String[] args) throws SQLException
     {
         SQL.connect();
         User.getAllUsersFromDataBase();
-        Graph.showPath(1,1000);
-        Scanner input = new Scanner (System.in);
+        Graph.readGraph();
         while (true)
         {
             String to_be_checked = input.nextLine();
