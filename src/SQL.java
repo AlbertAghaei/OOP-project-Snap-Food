@@ -16,4 +16,5 @@ public class SQL {
         if (connection != null)
             System.out.println("Connected to the database!");
     }
+
 }
