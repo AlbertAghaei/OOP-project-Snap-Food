@@ -1,3 +1,6 @@
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 public class Response
@@ -21,5 +24,23 @@ public class Response
               return allResponses.get(i);
         return null;
     }
-
+    public static void getAllResponsesFromDataBase()
+    {
+        try {
+            String query = "SELECT * FROM response;";
+            Statement statement = SQL.connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            while (resultSet.next()) {
+                int id = resultSet.getInt("ID");
+                String text = resultSet.getString("responsedText");
+                int ownerID = resultSet.getInt("ownerID");
+                int commentID = resultSet.getInt("commentID");
+                allResponses.add(new Response(id, text, commentID, (Owner) User.findUserByID(ownerID)));
+            }
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

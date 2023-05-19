@@ -29,7 +29,7 @@ public class Food
                 return foods.get(i);
         return null;
     }
-    public static void getAllFoodsFromDataBaseAndRatesAndComments()throws SQLException
+    public static void getAllFoodsFromDataBaseAndRatesAndCommentsAndDiscount()throws SQLException
     {
             try
             {
@@ -50,6 +50,19 @@ public class Food
                         while (resultSet1.next()) {
                             if (resultSet1.getInt("foodID") == id)///////////read all rates from sql
                                 findFoodByID(id).ratings.add(Rate.findRateByID(resultSet1.getInt("rateID")));
+                        }
+                        resultSet1.close();
+                        statement1.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        String query1 = "SELECT * FROM food_discount;";
+                        Statement statement1 = SQL.connection.createStatement();
+                        ResultSet resultSet1 = statement1.executeQuery(query1);
+                        while (resultSet1.next()) {
+                            if (resultSet1.getInt("foodID") == id)///////////read all discounts from sql
+                                findFoodByID(id).discount=Discount.findDiscountByID(resultSet1.getInt("discountID"));
                         }
                         resultSet1.close();
                         statement1.close();

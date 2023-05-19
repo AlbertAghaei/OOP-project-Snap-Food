@@ -7,8 +7,16 @@ public class Main
     public static void main(String[] args) throws SQLException
     {
         SQL.connect();
-        User.getAllUsersFromDataBase();
         Graph.readGraph();
+        User.getOnlyUserFromDtaBase();
+        Response.getAllResponsesFromDataBase();
+        Comment.getAllCommentsFromDataBase();
+        Discount.getAllDiscountsFromDataBase();
+        Rate.getAllRatingsFromDataBase();
+        Food.getAllFoodsFromDataBaseAndRatesAndCommentsAndDiscount();
+        Order.getAllOrdersFromDataBase();
+        Restaurant.getAllRestaurantsFromDataBaseAndTypesAndMenuAndHistory();
+        User.getAllUsersFromDataBaseAndHistoryAndOwnedRestaurants();
         while (true)
         {
             String to_be_checked = input.nextLine();

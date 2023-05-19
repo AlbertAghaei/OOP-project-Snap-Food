@@ -24,6 +24,10 @@ public class Entrance
                 System.out.println("Failed to make connection!");
         }
     }
+
+    private static void getOnlyUserFromDtaBase() {
+    }
+
     public static void registerNormal(String username, String password) throws SQLException
     {
         if(User.findUserByUsername(username)!=null)
