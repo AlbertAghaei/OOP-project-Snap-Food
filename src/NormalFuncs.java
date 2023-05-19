@@ -79,7 +79,7 @@ public class NormalFuncs
                 System.out.println("NOTHING FOUND!");
         }
     }
-    public static void selectFood(int foodID)/////////////////////////////////////////////////////////////
+    public static void selectFood(int foodID)////////////////////////////////////////////////////////////
     {
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
