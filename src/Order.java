@@ -8,6 +8,7 @@ public class Order
     int ID;
     ArrayList<Food> orderedFoods ;
     Double totalPrice;
+    static Order orderInUse;
     String status;///sent or in the way
     String timeLeft;
     String timeDelivered;
