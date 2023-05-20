@@ -230,7 +230,7 @@ public class NormalFuncs
            }
        return sum/counter;
     }
-    public static void submitRating(int stars)throws SQLException////////////////////////////////////////////
+    public static void submitRating(int stars)throws SQLException///////////////////////////////////////////
     {
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
