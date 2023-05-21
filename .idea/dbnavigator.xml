@@ -23,6 +23,7 @@
     <open-files />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="67130f80-ea22-40c1-9380-06515d2d1632" dataset="oop-project-snapfood.restaurant_food" active-filter-id="EMPTY_FILTER" />
     <filter-actions connection-id="67130f80-ea22-40c1-9380-06515d2d1632" dataset="jdbc-video.people" active-filter-id="">
       <filter id="47608979-8b26-44f8-85e6-e234a8f3a3c3" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND">
         <condition column="id" operator="=" value="" active="true" />
