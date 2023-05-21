@@ -1,5 +1,4 @@
 import java.sql.SQLException;
-
 public class InputManager
 {
    public static void funcCaller(String input) throws SQLException
@@ -25,6 +24,32 @@ public class InputManager
            NormalFuncs.searchFoodByName(splitted[2]);
        else if(splitted.length==5 && (splitted[0]+" "+splitted[1]+" "+splitted[2]+" "+splitted[3]).equals("SELECT FOOD BY USER"))///////////////////
            NormalFuncs.selectFood(Integer.parseInt(splitted[4]));
+       else if(splitted.length==2 && (splitted[0]+" "+splitted[1]).equals("DISPLAY COMMENTS"))///////////////
+           NormalFuncs.displayComments();
+       else if(splitted.length>=3 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).equals("ADD NEW COMMENT"))////////////////
+           NormalFuncs.addNewComment(splitted);
+       else if(splitted.length>=3 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).matches("EDIT COMMENT \\d"))////////////////
+           NormalFuncs.editComment(Integer.parseInt(splitted[2]),splitted);
+       else if(splitted.length==2 && (splitted[0]+" "+splitted[1]).equals("DISPLAY RATING"))///////////////
+           NormalFuncs.displayRatings();
+       else if(splitted.length==3 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).matches("SUBMIT RATING \\d"))///////////////
+           NormalFuncs.submitRating(Integer.parseInt(splitted[2]));
+       else if(splitted.length==4 && (splitted[0]+" "+splitted[1]+" "+splitted[2]+" "+splitted[3]).matches("EDIT RATING \\d \\d"))///////////////
+           NormalFuncs.editRating(Integer.parseInt(splitted[2]),Integer.parseInt(splitted[3]));
+       else if(splitted.length==6 && input.trim().matches("ADD THIS FOOD TO CART \\d"))///////////////////////
+           NormalFuncs.addFoodToCart(Integer.parseInt(splitted[5]));
+       else if(input.trim().matches("ACCESS ORDER HISTORY"))//////////////////////////////
+           NormalFuncs.showOrderHistory();
+       else if(input.trim().matches("SELECT ORDER \\d"))///////////////////////
+           NormalFuncs.selectOrder(Integer.parseInt(splitted[2]));
+       else if(input.trim().equals("DISPLAY CART STATUS"))////////////////////////
+           NormalFuncs.showCartStatus();
+       else if(input.trim().equals("CONFIRM ORDER"))///////////////////////////
+           NormalFuncs.confirmOrder();
+       else if(input.trim().equals("DISPLAY ACCOUNT CHARGE"))///////////////////////////
+           NormalFuncs.chargeStatus();
+       else if(splitted.length==3 && input.trim().matches("CHARGE ACCOUNT \\d+(\\.\\d+)?"))///////////////////////////
+           NormalFuncs.chargeAccount(Double.parseDouble(splitted[2]));
        else //////////////////
            System.out.println("invalid command");
    }

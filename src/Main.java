@@ -16,7 +16,7 @@ public class Main
         Food.getAllFoodsFromDataBaseAndRatesAndCommentsAndDiscount();
         Order.getAllOrdersFromDataBase();
         Restaurant.getAllRestaurantsFromDataBaseAndTypesAndMenuAndHistory();
-        User.getAllUsersFromDataBaseAndHistoryAndOwnedRestaurants();
+        User.getHistoryAndOwnedRestaurantsFromDataBase();
         while (true)
         {
             String to_be_checked = input.nextLine();

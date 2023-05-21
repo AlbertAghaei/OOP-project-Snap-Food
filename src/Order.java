@@ -9,7 +9,7 @@ public class Order
     ArrayList<Food> orderedFoods ;
     Double totalPrice;
     static Order orderInUse;
-    String status;///sent or in the way
+    String status;///sending taken sent
     String timeLeft;
     String timeDelivered;
     Order(int ID,ArrayList<Food> cart,Double totalPrice,String status)
@@ -44,10 +44,10 @@ public class Order
                     String query1 = "SELECT * FROM order_food;";
                     Statement statement1 = SQL.connection.createStatement();
                     ResultSet resultSet1 = statement1.executeQuery(query1);
-                    ArrayList<Food> foods = new ArrayList<>();///////////////////////read foods from data base
+                    ArrayList<Food> foods = new ArrayList<>();
                     while (resultSet1.next())
                         if(resultSet1.getInt("orderID")==id)
-                          foods.add(Food.findFoodByID(resultSet.getInt("foodID")));
+                          foods.add(Food.findFoodByID(resultSet1.getInt("foodID")));
                     allOrders.add(new Order(id,foods,price,status));
                     resultSet1.close();
                     statement1.close();

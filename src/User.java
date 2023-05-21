@@ -34,9 +34,8 @@ abstract public class User
                 return allUsers.get(i);
         return null;
     }
-    public static void getAllUsersFromDataBaseAndHistoryAndOwnedRestaurants()throws SQLException
+    public static void getHistoryAndOwnedRestaurantsFromDataBase()throws SQLException
     {
-        allUsers.clear();
         try
         {
             String query = "SELECT * FROM users;";
@@ -52,15 +51,13 @@ abstract public class User
                 String username = resultSet.getString("Username");
                 if(Class.equals("Owner"))
                 {
-                    Owner inuse = new Owner(id,username,pass,Class);
-                    allUsers.add(inuse);
                     try {
                         String query1 = "SELECT * FROM user_restaurant;";
                         Statement statement1 = SQL.connection.createStatement();
                         ResultSet resultSet1 = statement1.executeQuery(query1);
                         while (resultSet1.next()) {
-                            if (resultSet1.getInt("userID") == id)///////////
-                              inuse.ownedRestaurants.add(Restaurant.findRestaurantByID(resultSet1.getInt("restaurantID")));
+                            if (resultSet1.getInt("userID") == id)
+                                ((Owner)User.findUserByID(id)).ownedRestaurants.add(Restaurant.findRestaurantByID(resultSet1.getInt("restaurantID")));
                         }
                         resultSet1.close();
                         statement1.close();
@@ -70,15 +67,13 @@ abstract public class User
                 }
                 else if(Class.equals("Normal"))
                 {
-                    Normal inuse = new Normal(id,username,pass,Class,Node.getNodeByID(location),charge);
-                    allUsers.add(inuse);
                     try {
                         String query1 = "SELECT * FROM user_order;";
                         Statement statement1 = SQL.connection.createStatement();
                         ResultSet resultSet1 = statement1.executeQuery(query1);
                         while (resultSet1.next()) {
                             if (resultSet1.getInt("userID") == id)///////////
-                                inuse.userHistory.add(Order.findOrderByID(resultSet1.getInt("orderID")));
+                                ((Normal)User.findUserByID(id)).userHistory.add(Order.findOrderByID(resultSet1.getInt("orderID")));
                         }
                         resultSet1.close();
                         statement1.close();

@@ -2,6 +2,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class NormalFuncs
 {
@@ -51,18 +52,21 @@ public class NormalFuncs
         else
         {
             Restaurant.restaurantInuse = Restaurant.findRestaurantByID(restaurantID);
-            System.out.println("TOTAL RATING: "+calculateTotalRestaurantRating(Restaurant.restaurantInuse));
+            if(Double.isNaN(calculateTotalRestaurantRating(Restaurant.restaurantInuse)))
+               System.out.println("TOTAL RATING: NO RATING YET!");
+            else
+                System.out.println("TOTAL RATING: "+calculateTotalRestaurantRating(Restaurant.restaurantInuse));
             System.out.println("FOOD TYPES:");
             for(int i=0; i<Restaurant.restaurantInuse.foodTypes.size(); i++)
                 System.out.println(Restaurant.restaurantInuse.foodTypes.get(i));
             System.out.println("FOODS:");
             for(int i=0; i<Restaurant.findRestaurantByID(restaurantID).menu.size(); i++)
-                System.out.println(Restaurant.findRestaurantByID(restaurantID).menu.get(i).ID+" "+Restaurant.findRestaurantByID(restaurantID).menu.get(i).name+" "+Restaurant.findRestaurantByID(restaurantID).menu.get(i).price);
+                System.out.println(Restaurant.findRestaurantByID(restaurantID).menu.get(i).ID+" "+Restaurant.findRestaurantByID(restaurantID).menu.get(i).name+" "+Restaurant.findRestaurantByID(restaurantID).menu.get(i).price+"$");
             if(Restaurant.findRestaurantByID(restaurantID).menu.size()==0)
                 System.out.println("NO FOODS!");
         }
     }
-    public static void searchFoodByName(String name)
+    public static void searchFoodByName(String name)////////////////////////////////////////////
     {
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
@@ -84,7 +88,7 @@ public class NormalFuncs
                 System.out.println("NOTHING FOUND!");
         }
     }
-    public static void selectFood(int foodID)////////////////////////////////////////////////////////////not checked
+    public static void selectFood(int foodID)////////////////////////////////////////////////////////////
     {
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
@@ -122,12 +126,12 @@ public class NormalFuncs
         {
             System.out.println("COMMENTS:");
             for(int i=0; i<Food.foodInuse.comments.size(); i++)
-                System.out.println("USER: "+Food.foodInuse.comments.get(i).user.username + "COMMENT: "+ Food.foodInuse.comments.get(i).text);
+                System.out.println(Food.foodInuse.comments.get(i).ID+" USER: "+Food.foodInuse.comments.get(i).user.username + " COMMENT: "+ Food.foodInuse.comments.get(i).text);
             if(Food.foodInuse.comments.size()==0)
                 System.out.println("NO COMMENTS YET!");
         }
     }
-    public static boolean checkIfUserHasOrderedAFood(Normal inuse, Food inuse1)
+    public static boolean checkIfUserHasOrderedAFood(Normal inuse, Food inuse1)///////////////////////////////////
     {
         for(int i=0; i<inuse.userHistory.size(); i++)
             for(int j=0; j<inuse.userHistory.get(i).orderedFoods.size(); j++)
@@ -135,7 +139,7 @@ public class NormalFuncs
                     return true;
         return false;
     }
-    public static void addNewComment(String comment)throws SQLException////////////////////////////
+    public static void addNewComment(String[] splitted)throws SQLException////////////////////////////
     {
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
@@ -149,6 +153,9 @@ public class NormalFuncs
             System.out.println("YOU HAVE NOT ORDERED THIS FOOD BEFORE!");
         else
         {
+            String comment="";
+            for (int i=3; i< splitted.length; i++)
+               comment+=splitted[i];
             Comment comment1 = new Comment(Comment.allComments.size()+1,comment,(Normal)User.loggedInUser,null);
             Comment.allComments.add(comment1);
             Food.foodInuse.comments.add(comment1);
@@ -162,16 +169,16 @@ public class NormalFuncs
                 System.out.println("COMMENTED SUCCESSFULLY!");
             else
                 System.out.println("Failed to make connection!");
-            String query1 = "INSERT INTO food_comment(commentedID, foodID) VALUES ( ?, ?)";
+            String query1 = "INSERT INTO food_comment(commentID, foodID) VALUES ( ?, ?)";
             PreparedStatement statement1 = SQL.connection.prepareStatement(query1);
-            statement1.setInt(1, Comment.allComments.size()+1);
+            statement1.setInt(1, Comment.allComments.size());
             statement1.setInt(2, Food.foodInuse.ID);
             int rowsInserted1 = statement1.executeUpdate();
             if (rowsInserted1 <= 0)
                 System.out.println("Failed to make connection!");
         }
     }
-    public static void editComment(int commentID, String newComment)throws SQLException/////////////////////////////
+    public static void editComment(int commentID, String[] splitted)throws SQLException/////////////////////////////
     {
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
@@ -189,6 +196,10 @@ public class NormalFuncs
             System.out.println("THIS COMMENT IS NOT YOURS!");
         else
         {
+            String newComment="";
+            for (int i=3; i< splitted.length; i++)
+                newComment+=splitted[i];
+            Comment.findCommentByID(commentID).text = newComment;
             String query = "UPDATE comments SET commentedText = ? WHERE ID = ?";
             PreparedStatement statement = SQL.connection.prepareStatement(query);
             statement.setString(1, newComment);
@@ -199,6 +210,13 @@ public class NormalFuncs
             else
                 System.out.println("Failed to make connection!");
         }
+    }
+    public static boolean checkIfUserHasRatedBefore(Food food)/////////////////////////////////////
+    {
+        for(int i=0; i<food.ratings.size(); i++)
+            if(food.ratings.get(i).user==User.loggedInUser)
+                return true;
+        return false;
     }
     public static void displayRatings()/////////////////////////////////////
     {
@@ -214,7 +232,7 @@ public class NormalFuncs
         {
             System.out.println("RATINGS:");
             for(int i=0; i<Food.foodInuse.ratings.size(); i++)
-                System.out.println("USER: "+Food.foodInuse.ratings.get(i).user.username+" RATE: "+Food.foodInuse.ratings.get(i).stars+"/5");
+                System.out.println(Food.foodInuse.ratings.get(i).ID+" USER: "+Food.foodInuse.ratings.get(i).user.username+" RATE: "+Food.foodInuse.ratings.get(i).stars+"/5");
             if(Food.foodInuse.ratings.size()==0)
               System.out.println("NO RATING YET!");
         }
@@ -242,6 +260,8 @@ public class NormalFuncs
             System.out.println("YOU HAVE SELECTED NO FOOD!");
         else if(!checkIfUserHasOrderedAFood((Normal)User.loggedInUser,Food.foodInuse))
             System.out.println("YOU HAVE NOT ORDERED THIS FOOD BEFORE!");
+        else if(checkIfUserHasRatedBefore(Food.foodInuse))
+            System.out.println("YOU HAVE RATED BEFORE!");
         else if(stars<0 || stars>5)
             System.out.println("INVALID AMOUNT!");
         else
@@ -261,7 +281,7 @@ public class NormalFuncs
             String query1 = "INSERT INTO food_rating(foodID,rateID) VALUES ( ?, ?)";
             PreparedStatement statement1 = SQL.connection.prepareStatement(query1);
             statement1.setInt(1, Food.foodInuse.ID);
-            statement1.setInt(2, Rate.allRates.size()+1);
+            statement1.setInt(2, Rate.allRates.size());
             int rowsInserted1 = statement1.executeUpdate();
             if (rowsInserted1 <= 0)
                 System.out.println("Failed to make connection!");
@@ -285,6 +305,7 @@ public class NormalFuncs
             System.out.println("THIS RATE IS NOT YOURS!");
         else
         {
+            Rate.findRateByID(rateID).stars = newRate;
             String query = "UPDATE rating SET stars = ? WHERE ID = ?";
             PreparedStatement statement = SQL.connection.prepareStatement(query);
             statement.setInt(1, newRate);
@@ -407,6 +428,8 @@ public class NormalFuncs
         {
             customer.charge-=calculateCartCost(customer);
             Order NEW = new Order(Order.allOrders.size()+1,customer.cart,calculateCartCost(customer),"sending");
+            ArrayList<Food> temp = new ArrayList<>(customer.cart);
+            NEW.orderedFoods = temp;
             customer.cart.clear();
             Restaurant.restaurantInuse.restaurantHistory.add(NEW);
             ((Normal) User.loggedInUser).userHistory.add(NEW);
@@ -422,14 +445,14 @@ public class NormalFuncs
             query = "INSERT INTO restaurant_order(restaurantID,orderID) VALUES ( ?, ?)";
             statement = SQL.connection.prepareStatement(query);
             statement.setInt(1, Restaurant.restaurantInuse.ID);
-            statement.setInt(2, Order.allOrders.size()+1);
+            statement.setInt(2, Order.allOrders.size());
             rowsAffected = statement.executeUpdate();
             if(rowsAffected<=0)
                 System.out.println("Failed to make connection!");
             query = "INSERT INTO user_order(userID,orderID) VALUES ( ?, ?)";
             statement = SQL.connection.prepareStatement(query);
             statement.setInt(1, User.loggedInUser.ID);
-            statement.setInt(2, Order.allOrders.size()+1);
+            statement.setInt(2, Order.allOrders.size());
             rowsAffected = statement.executeUpdate();
             if(rowsAffected<=0)
                 System.out.println("Failed to make connection!");
@@ -440,15 +463,16 @@ public class NormalFuncs
             rowsAffected = statement.executeUpdate();
             if(rowsAffected<=0)
                 System.out.println("Failed to make connection!");
-            query = "INSERT INTO order_food(foodID,orderID) VALUES ( ?, ?)";
-            statement = SQL.connection.prepareStatement(query);
             for(int i=0; i<NEW.orderedFoods.size();i++)
             {
+                query = "INSERT INTO order_food(foodID,orderID) VALUES ( ?, ?)";
+                statement = SQL.connection.prepareStatement(query);
                 statement.setInt(1, NEW.orderedFoods.get(i).ID);
                 statement.setInt(2, NEW.ID);
+                rowsAffected = statement.executeUpdate();
+                if(rowsAffected<=0)
+                    System.out.println("Failed to make connection!");
             }
-            if(rowsAffected<=0)
-                System.out.println("Failed to make connection!");
             System.out.println("TYPE YOUR LOCATION(NODE ID):");
             int nodeID = Integer.parseInt(Main.input.nextLine());
             customer.location = Node.getNodeByID(nodeID);
@@ -490,5 +514,18 @@ public class NormalFuncs
         else
             System.out.println("CHARGE: "+customer.charge);
     }
-    //////////////////peik va check kardan tabeha
+    public static void showUnSent()//////////////////////////////////////////////
+    {
+        if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("RESTAURANT OWNER CAN NOT DELIVER!");
+        else
+        {
+            for(int i=0; i<Order.allOrders.size(); i++)
+                if(Order.allOrders.get(i).status=="sending")
+                    System.out.println();////////////////////////////////
+        }
+    }
+    //////////////////peik
 }
