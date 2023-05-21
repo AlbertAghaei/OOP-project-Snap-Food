@@ -72,7 +72,7 @@ abstract public class User
                         Statement statement1 = SQL.connection.createStatement();
                         ResultSet resultSet1 = statement1.executeQuery(query1);
                         while (resultSet1.next()) {
-                            if (resultSet1.getInt("userID") == id)///////////
+                            if (resultSet1.getInt("userID") == id)
                                 ((Normal)User.findUserByID(id)).userHistory.add(Order.findOrderByID(resultSet1.getInt("orderID")));
                         }
                         resultSet1.close();
