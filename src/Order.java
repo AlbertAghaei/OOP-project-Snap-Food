@@ -1,7 +1,9 @@
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.sql.Timestamp;
 public class Order
 {
     static ArrayList<Order> allOrders = new ArrayList<>();
@@ -9,9 +11,8 @@ public class Order
     ArrayList<Food> orderedFoods ;
     Double totalPrice;
     static Order orderInUse;
+    Instant whenTaken;
     String status;///sending taken sent
-    String timeLeft;
-    String timeDelivered;
     Order(int ID,ArrayList<Food> cart,Double totalPrice,String status)
     {
         this.ID = ID;

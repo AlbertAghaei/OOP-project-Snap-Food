@@ -1,7 +1,5 @@
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.Instant;
 import java.util.ArrayList;
 
 public class NormalFuncs
@@ -362,7 +360,12 @@ public class NormalFuncs
     {
         double sum=0;
         for(int i=0; i<order.orderedFoods.size(); i++)
-            sum+=order.orderedFoods.get(i).price;
+        {
+            if(order.orderedFoods.get(i).discount==null || order.orderedFoods.get(i).discount.percent==0 )
+                sum+=order.orderedFoods.get(i).price;
+            else
+                sum+=order.orderedFoods.get(i).price*(double)order.orderedFoods.get(i).discount.percent/100;
+        }
         return sum;
     }
     public static double calculateCartCost(Normal user)//////////////////////////////////
@@ -476,6 +479,13 @@ public class NormalFuncs
             System.out.println("TYPE YOUR LOCATION(NODE ID):");
             int nodeID = Integer.parseInt(Main.input.nextLine());
             customer.location = Node.getNodeByID(nodeID);
+            query = "UPDATE users SET location = ? WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, nodeID);
+            statement.setInt(2, User.loggedInUser.ID);
+            rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
         }
     }
     public static void chargeAccount(double amount)throws SQLException//////////////////////////////////
@@ -514,6 +524,19 @@ public class NormalFuncs
         else
             System.out.println("CHARGE: "+customer.charge);
     }
+    public static Normal findUserByOrder(int orderID)///////////////////////
+    {
+        for(int i=0; i<User.allUsers.size(); i++)
+            if(User.allUsers.get(i).type.equals("Normal"))
+              if(((Normal)User.allUsers.get(i)).userHistory.contains(Order.findOrderByID(orderID)))
+                  return ((Normal)User.allUsers.get(i));
+        return null;
+    }
+    public static double calculateDeliveryPrice(int firstNode, int secondNode)////////////////////////
+    {
+        int time = Graph.calculateTime(firstNode,secondNode);
+        return (double)time/5;
+    }
     public static void showUnSent()//////////////////////////////////////////////
     {
         if(User.loggedInUser==null)
@@ -523,9 +546,188 @@ public class NormalFuncs
         else
         {
             for(int i=0; i<Order.allOrders.size(); i++)
-                if(Order.allOrders.get(i).status=="sending")
-                    System.out.println();////////////////////////////////
+                if(Order.allOrders.get(i).status.equals("sending"))
+                    System.out.println(Order.allOrders.get(i).ID+" RESTAURANT LOCATION: "+findRestaurantByOrderID(Order.allOrders.get(i).ID).location.ID+" CUSTOMER LOCATION: "+findUserByOrder(Order.allOrders.get(i).ID).location.ID+ " DELIVERY PRICE: "+calculateDeliveryPrice(findRestaurantByOrderID(Order.allOrders.get(i).ID).location.ID,findUserByOrder(Order.allOrders.get(i).ID).location.ID)+"$");
         }
     }
-    //////////////////peik
+    public static void deliver(int orderID)throws SQLException/////////////////////////////////////////////
+    {
+        if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("RESTAURANT OWNER CAN NOT DELIVER!");
+        else if(Order.findOrderByID(orderID)==null || !Order.findOrderByID(orderID).status.equals("sending"))
+            System.out.println("ORDER WITH THIS ID EITHER DOES NOT EXIST OR IS TAKEN (IT ALSO CAN HAVE BEEN DELIVERED :} )!");
+        else if(((Normal)User.loggedInUser).deliver!=null && ((Normal)User.loggedInUser).deliver.status.equals("taken"))
+            System.out.println("YOU ALREADY HAVE AN UNDELIVERED ORDER!");
+        else if(findUserByOrder(orderID)==(User.loggedInUser))
+            System.out.println("YOU CAN NOT DELIVER YOUR OWN ORDER :} !");
+        else
+        {
+            Order.findOrderByID(orderID).status="taken";
+            ((Normal)User.loggedInUser).charge+=calculateDeliveryPrice(findRestaurantByOrderID(orderID).location.ID,findUserByOrder(orderID).location.ID);
+            (findUserByOrder(orderID)).charge-=calculateDeliveryPrice(findRestaurantByOrderID(orderID).location.ID,findUserByOrder(orderID).location.ID);
+            Order.findOrderByID(orderID).whenTaken = Instant.now();
+            ((Normal)User.loggedInUser).deliver = Order.findOrderByID(orderID);
+            String query = "UPDATE orders SET orderStatus = ? WHERE ID = ?";
+            PreparedStatement statement = SQL.connection.prepareStatement(query);
+            statement.setString(1, "taken");
+            statement.setInt(2, orderID);
+            int rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            query = "UPDATE orders SET whenTaken = CURRENT_TIMESTAMP WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, orderID);
+            rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            query = "UPDATE users SET Charge = ? WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setDouble(1, ((Normal)User.loggedInUser).charge);
+            statement.setInt(2,User.loggedInUser.ID);
+            rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            query = "UPDATE users SET Charge = ? WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setDouble(1, (findUserByOrder(orderID)).charge);
+            statement.setInt(2,(findUserByOrder(orderID)).ID);
+            rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            query = "INSERT INTO delivery_user(orderID,userID) VALUES ( ?, ?)";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, orderID);
+            statement.setInt(2, User.loggedInUser.ID);
+            rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            System.out.println("GIVE US YOUR LOCATION (NODE ID) :");
+            int nodeID = Integer.parseInt(Main.input.nextLine().trim());
+            query = "UPDATE users SET location = ? WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, nodeID);
+            statement.setInt(2, User.loggedInUser.ID);
+            rowsAffected = statement.executeUpdate();
+            ((Normal) User.loggedInUser).location = Node.getNodeByID(nodeID);
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            int duration = Graph.calculateTime(nodeID,findRestaurantByOrderID(orderID).ID)+Graph.calculateTime(findRestaurantByOrderID(orderID).ID,findUserByOrder(orderID).ID);
+            query = "UPDATE orders SET duration = ? WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, duration);
+            statement.setInt(2, orderID);
+            rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            System.out.println("LETS DELIVER!");
+        }
+    }
+    public static void showOrderStatus(int orderID)//////////////////////////////////////////////
+    {
+        if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A RESTAURANT OWNER NOT A CUSTOMER!");
+        else if(((Normal)User.loggedInUser).userHistory.size()==0)
+            System.out.println("NO ORDERS YET!");
+        else if(Order.findOrderByID(orderID)==null)
+            System.out.println("THIS ORDER DOES NOT EXIST!");
+        else if(!((Normal)User.loggedInUser).userHistory.contains(Order.findOrderByID(orderID)))
+            System.out.println("THIS ORDER IS NOT CONFIRMED BY YOU!");
+        else if(Order.findOrderByID(orderID).status.equals("sending"))
+            System.out.println("ORDER NOT YET ACCEPTED BY DELIVERY MAN!");
+        else if(Order.findOrderByID(orderID).status.equals("sent"))
+            System.out.println("ORDER IS DELIVERED!");
+        else
+        {
+            String query = "SELECT TIMESTAMPDIFF(MINUTE, whenTaken, NOW()) AS minutes_difference " +
+                    "FROM orders " +
+                    "WHERE ID = ?";
+            try (PreparedStatement statement = SQL.connection.prepareStatement(query)) {
+                statement.setInt(1, orderID);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    int minutesDifference = resultSet.getInt("minutes_difference");
+                    int duration = 0;
+                    String query1 = "SELECT DURATION FROM orders WHERE ID = ?";
+                    try (PreparedStatement statement1 = SQL.connection.prepareStatement(query1)) {
+                        statement1.setInt(1, orderID);
+                        ResultSet resultSet1 = statement1.executeQuery();
+                        if (resultSet1.next()) {
+                            duration = resultSet1.getInt("DURATION");
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    if(duration-minutesDifference<=0)
+                    {
+                        System.out.println("ORDER IS DELIVERED");
+                        String query2 = "UPDATE orders SET orderStatus = ? WHERE ID = ?";
+                        PreparedStatement statement1 = SQL.connection.prepareStatement(query2);
+                        statement1.setString(1, "sent");
+                        statement1.setInt(2, orderID);
+                        int rowsAffected = statement1.executeUpdate();
+                        if(rowsAffected<=0)
+                            System.out.println("Failed to make connection!");
+                        Order.findOrderByID(orderID).status="sent";
+                        ((Normal)User.loggedInUser).deliver = null;
+                    }
+                    else
+                       System.out.println("THE REMAINING TIME: " + (duration-minutesDifference)+"m");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public static void showFromNowToRestaurant(int nodeID)/////////////////////////
+    {
+        if(nodeID==0 || nodeID>1000)
+            System.out.println("INVALID NODE ID!");
+        else if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A RESTAURANT OWNER NOT A CUSTOMER!");
+        else if(((Normal)User.loggedInUser).deliver==null || !((Normal)User.loggedInUser).deliver.status.equals("taken") )
+            System.out.println("THERE IS NO ACTIVE ORDER TO DELIVER FOR YOU!");
+        else
+            Graph.showPath(nodeID,findRestaurantByOrderID(((Normal)User.loggedInUser).deliver.ID).location.ID);
+    }
+    public static void showFromNowToCustomer(int nodeID)///////////////////////////
+    {
+        if(nodeID==0 || nodeID>1000)
+            System.out.println("INVALID NODE ID!");
+        else if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A RESTAURANT OWNER NOT A CUSTOMER!");
+        else if(((Normal)User.loggedInUser).deliver==null || !((Normal)User.loggedInUser).deliver.status.equals("taken") )
+            System.out.println("THERE IS NO ACTIVE ORDER TO DELIVER FOR YOU!");
+        else
+            Graph.showPath(nodeID,findUserByOrder(((Normal)User.loggedInUser).deliver.ID).location.ID);
+    }
+    public static void showDeliveryToRestaurant()/////////////////////////
+    {
+        if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A RESTAURANT OWNER NOT A CUSTOMER!");
+        else if(((Normal)User.loggedInUser).deliver==null || !((Normal)User.loggedInUser).deliver.status.equals("taken") )
+            System.out.println("THERE IS NO ACTIVE ORDER TO DELIVER FOR YOU!");
+        else
+            Graph.showPath(((Normal) User.loggedInUser).location.ID, findRestaurantByOrderID(((Normal)User.loggedInUser).deliver.ID).location.ID);
+    }
+    public static void showFromRestaurantToCustomer()///////////////////////////
+    {
+        if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A RESTAURANT OWNER NOT A CUSTOMER!");
+        else if(((Normal)User.loggedInUser).deliver==null || !((Normal)User.loggedInUser).deliver.status.equals("taken") )
+            System.out.println("THERE IS NO ACTIVE ORDER TO DELIVER FOR YOU!");
+        else
+            Graph.showPath(findRestaurantByOrderID(((Normal)User.loggedInUser).deliver.ID).location.ID,findUserByOrder(((Normal)User.loggedInUser).deliver.ID).location.ID);
+    }
 }

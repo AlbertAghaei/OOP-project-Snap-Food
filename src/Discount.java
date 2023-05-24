@@ -2,20 +2,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.sql.Timestamp;
 
 public class Discount
 {
     static ArrayList<Discount> allDiscounts = new ArrayList<>();
     int ID;
     int percent;
-    String time;//??
+    Timestamp activationTime;
     int duration; ///in minutes
     boolean active;
-    Discount(int ID,int percent, String time, boolean activity, int duration)
+    Discount(int ID,int percent, Timestamp activationTime, boolean activity, int duration)
     {
         this.ID = ID;
         this.percent = percent;
-        this.time = time;
+        this.activationTime = activationTime;
         this.active = activity;
         this.duration = duration;
     }
@@ -36,7 +37,7 @@ public class Discount
             while (resultSet.next())
             {
                 int id = resultSet.getInt("ID");
-                String activationTime = resultSet.getString("activationTime");
+                Timestamp activationTime = resultSet.getTimestamp("activationTime");
                 boolean activity = resultSet.getBoolean("activity");
                 int duration = resultSet.getInt("duration");
                 int percent = resultSet.getInt("percent");

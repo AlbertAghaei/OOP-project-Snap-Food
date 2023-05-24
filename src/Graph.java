@@ -89,7 +89,16 @@ public class Graph {
         for (int i = 0; i < Objects.requireNonNull(path).size(); i++)
             System.out.print(path.get(i).ID + " -> ");
         System.out.println("Destination reached");
-        System.out.println("Estimated Time: "+end.score);
+        System.out.println("Estimated Time: "+end.score+"m");
+    }
+    public static int calculateTime(int ID1, int ID2)////////////////////
+    {
+        Node.resetScores();
+        readGraph();
+        Node start = Node.getNodeByID(ID1);
+        Node end = Node.getNodeByID(ID2);
+        List<Node> path = findPath(graph, start, end);
+        return end.score;
     }
 
     public static void showMap() {

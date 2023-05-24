@@ -5,7 +5,9 @@ public class Entrance
 {
     public static void registerOwner(String username, String password) throws SQLException
     {
-        if(User.findUserByUsername(username)!=null)
+        if(User.loggedInUser!=null)
+            System.out.println("LOGOUT FIRST!");
+        else if(User.findUserByUsername(username)!=null)
             System.out.println("USER WITH USERNAME EXISTS!");
         else
         {
@@ -25,12 +27,11 @@ public class Entrance
         }
     }
 
-    private static void getOnlyUserFromDtaBase() {
-    }
-
     public static void registerNormal(String username, String password) throws SQLException
     {
-        if(User.findUserByUsername(username)!=null)
+        if(User.loggedInUser!=null)
+            System.out.println("LOGOUT FIRST!");
+        else if(User.findUserByUsername(username)!=null)
             System.out.println("USER WITH USERNAME EXISTS!");
         else
         {

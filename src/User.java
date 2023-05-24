@@ -7,7 +7,7 @@ abstract public class User
     int ID;
     String username;
     String password;
-    String type;///owner or normal
+    String type;///Owner or Normal
     static User loggedInUser;
     static ArrayList<User> allUsers = new ArrayList<>();
     String securityQuestion;///enums might be needed
@@ -115,6 +115,35 @@ abstract public class User
                     Normal inuse = new Normal(id,username,pass,Class,Node.getNodeByID(location),charge);
                     allUsers.add(inuse);
                 }
+            }
+            resultSet.close();
+            statement.close();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
+    public static void readDeliveryUserFromDataBase()throws SQLException
+    {
+        try
+        {
+            String query = "SELECT * FROM delivery_user;";
+            Statement statement = SQL.connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            while (resultSet.next())
+            {
+                int userID = resultSet.getInt("userID");
+                String query1 = "SELECT * FROM delivery_user;";
+                Statement statement1 = SQL.connection.createStatement();
+                ResultSet resultSet1 = statement1.executeQuery(query1);
+                while (resultSet1.next())
+                {
+                    if(resultSet.getInt("userID")==userID)
+                        ((Normal)User.findUserByID(userID)).deliver = Order.findOrderByID(resultSet1.getInt("orderID"));
+                }
+                resultSet1.close();
+                statement1.close();
             }
             resultSet.close();
             statement.close();

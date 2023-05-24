@@ -3,6 +3,7 @@ public class Normal extends User
 {
     Double charge;
     Node location;
+    Order deliver;
     ArrayList<Food> cart = new ArrayList<>();
     ArrayList<Order> userHistory = new ArrayList<>();
     Normal(int ID,String username, String password, String type, Node location,Double charge)

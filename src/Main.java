@@ -17,6 +17,7 @@ public class Main
         Order.getAllOrdersFromDataBase();
         Restaurant.getAllRestaurantsFromDataBaseAndTypesAndMenuAndHistory();
         User.getHistoryAndOwnedRestaurantsFromDataBase();
+        User.readDeliveryUserFromDataBase();
         while (true)
         {
             String to_be_checked = input.nextLine();
