@@ -1,5 +1,5 @@
 public class Response
-{
+{   static int responseID =0;
     String massage;
     int commentID;
     Owner owner;
