@@ -8,18 +8,16 @@ public class Food
     String name;
     int ID;
     Double price;
-    String foodType;
     ArrayList<Comment> comments = new ArrayList<>();
     ArrayList<Rate> ratings = new ArrayList<>();
     Boolean active;
     static Food foodInuse;
     Discount discount;
-    Food(int ID, String name,Double price,String type,boolean activity)
+    Food(int ID, String name,Double price,boolean activity)
     {
         this.ID = ID;
         this.name = name;
         this.price = price;
-        this.foodType = type;
         this.active = activity;
     }
     public static Food findFoodByID(int ID)
@@ -39,10 +37,9 @@ public class Food
                 while (resultSet.next()) {
                     int id = resultSet.getInt("ID");
                     double price = resultSet.getDouble("price");
-                    String type = resultSet.getString("foodType");
                     boolean activity = resultSet.getBoolean("activity");
                     String name = resultSet.getString("title");
-                    foods.add(new Food(id, name, price, type, activity));
+                    foods.add(new Food(id, name, price, activity));
                     try {
                         String query1 = "SELECT * FROM food_rating;";
                         Statement statement1 = SQL.connection.createStatement();

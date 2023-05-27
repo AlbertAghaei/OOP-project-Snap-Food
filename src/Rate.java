@@ -7,7 +7,6 @@ public class Rate
 {
     static ArrayList<Rate> allRates = new ArrayList<>();
     int ID;
-    Rate rateInUse;
     int stars;///1-5
     Normal user;
     Rate(int ID,int stars, Normal user)

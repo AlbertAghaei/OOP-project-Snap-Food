@@ -99,7 +99,6 @@ public class NormalFuncs
         else
         {
             Food.foodInuse=Food.findFoodByID(foodID);
-            System.out.println("FOOD TYPE: "+Food.foodInuse.foodType);
             if(Food.foodInuse.active==true)
                 System.out.println("AVAILABILITY: available");
             else
@@ -325,6 +324,8 @@ public class NormalFuncs
             System.out.println("YOU HAVE SELECTED NO RESTAURANTS!");
         else if(Food.findFoodByID(foodID)==null || !Restaurant.restaurantInuse.menu.contains(Food.findFoodByID(foodID)))
             System.out.println("THIS RESTAURANT MENU DOES NOT HAVE A FOOD WITH THE CHOSEN ID!");
+        else if(Food.findFoodByID(foodID).active==false)
+            System.out.println("THE CHOSEN FOOD IS NOT AVAILABLE RIGHT NOW!");
         else
         {
             Normal customer = (Normal)User.loggedInUser;

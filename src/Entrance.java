@@ -89,6 +89,10 @@ public class Entrance
          else
          {
              User.loggedInUser = null;
+             Comment.commentInUse = null;
+             Food.foodInuse = null;
+             Order.orderInUse = null;
+             Restaurant.restaurantInuse = null;
              System.out.println("USER LOGGED OUT SUCCESSFULLY!");
          }
     }

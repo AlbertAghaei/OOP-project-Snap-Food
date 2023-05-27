@@ -2,6 +2,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Comparator;
+
 public class Restaurant
 {
     static ArrayList<Restaurant> restaurants = new ArrayList<>();
@@ -101,5 +103,11 @@ public class Restaurant
         {
             e.printStackTrace();
         }
+    }
+    String getName(){return this.name;}
+    int getAge (){return this.ID;}
+    public static Comparator<Restaurant> sortRestaurants()
+    {
+        return Comparator.comparing(Restaurant::getName).thenComparing(Restaurant::getAge);
     }
 }
