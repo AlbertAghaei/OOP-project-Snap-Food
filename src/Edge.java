@@ -13,7 +13,6 @@ public class Edge
         this.node1=first;
         this.node2=second;
         this.weight=weight;
-        ///read from database the last ID and give the next one to this comment
     }
     public static Edge getEdgeByID(int ID)
     {

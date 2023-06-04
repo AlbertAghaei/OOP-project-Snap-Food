@@ -1,50 +1,52 @@
-import java.sql.*;
-import java.time.LocalTime;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.sql.Timestamp;
 
 public class Discount
-{    static int count =0;
+{
+    static ArrayList<Discount> allDiscounts = new ArrayList<>();
     int ID;
     int percent;
-    java.sql.Timestamp setTime;//??
-    int duration; //minute
+    Instant activationTime;
+    int duration; ///in minutes
     boolean active;
-    Discount(int percent, Timestamp time,int duration)
+    Discount(int ID,int percent, boolean activity, int duration)
     {
+        this.ID = ID;
         this.percent = percent;
-        this.setTime = time;
+        this.active = activity;
         this.duration = duration;
-        this.active = true;
-        ///read from database the last ID and give the next one to this comment
-        ///write this one in database
     }
-    public void isTimeExpired() throws SQLException
-    {java.util.Date date = new java.util.Date();
-        Timestamp timestamp1 = this.setTime;
-        Timestamp timestamp2 = new Timestamp(date.getTime());
-        long milliseconds = timestamp2.getTime() - timestamp1.getTime();
-        int seconds = (int) milliseconds / 1000;
-        int hours = seconds / 3600;
-        int minutes = (seconds % 3600) / 60;
-        seconds = (seconds % 3600) % 60;
-        minutes+=hours*60+seconds/60;
-        if(this.duration-minutes>0)
-            this.active=true;
-        else this.active=false;
-        //update in sql
-        String url;
-        String username;
-        String password;
-        Connection connection;
-        url = "jdbc:mysql://localhost:3306/oop-project-snapfood";
-        username = "root";
-        password = "W@2915djkq#";
-        try {
-            connection = DriverManager.getConnection(url, username, password);
-            if (connection != null) {
-                Statement statement = connection.createStatement();
-                statement.executeUpdate("update discount" + " set activity = " +this.active+ "where ID = " + this.ID);
+    public static Discount findDiscountByID(int id)
+    {
+        for(int i=0; i<allDiscounts.size(); i++)
+          if (allDiscounts.get(i).ID==id)
+              return allDiscounts.get(i);
+        return null;
+    }
+    public static void getAllDiscountsFromDataBase()
+    {
+        try
+        {
+            String query = "SELECT * FROM discount;";
+            Statement statement = SQL.connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            while (resultSet.next())
+            {
+                int id = resultSet.getInt("ID");
+                boolean activity = resultSet.getBoolean("activity");
+                int duration = resultSet.getInt("duration");
+                int percent = resultSet.getInt("percent");
+                allDiscounts.add(new Discount(id,percent,activity,duration));
             }
-        } catch (Exception e) {
+            resultSet.close();
+            statement.close();
+        }
+        catch (SQLException e)
+        {
             e.printStackTrace();
         }
     }
