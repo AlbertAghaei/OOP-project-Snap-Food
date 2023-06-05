@@ -57,7 +57,7 @@ public class OwnerFuncs {
         return null;
     }
 
-    public static void showLocation()/////////////////////////////
+    public static void showLocation()////////////////////////////
     {
         if (User.loggedInUser == null)
             System.out.println("LOGIN FIRST!");
