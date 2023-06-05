@@ -14,6 +14,8 @@ public class InputManager
            Entrance.loginNormal(splitted[2],splitted[3]);
        else if(splitted.length==1 && splitted[0].equals("LOGOUT"))///////////////
            Entrance.logout();
+       else if(input.trim().equals("DISPLAY SUGGESTIONS"))///////////////////
+           NormalFuncs.suggest();
        else if(splitted.length==3 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).equals("SHOW ALL RESTAURANTS"))////////
            NormalFuncs.showAllAvailableRestaurants();
        else if(splitted.length==3 && (splitted[0]+" "+splitted[1]).equals("SEARCH RESTAURANT"))////////
@@ -22,11 +24,11 @@ public class InputManager
            NormalFuncs.selectRestaurant(Integer.parseInt(splitted[4]));
        else if(splitted.length==3 && (splitted[0]+" "+splitted[1]).equals("SEARCH FOOD"))///////////////////
            NormalFuncs.searchFoodByName(splitted[2]);
-       else if(splitted.length==5 && (splitted[0]+" "+splitted[1]+" "+splitted[2]+" "+splitted[3]).equals("SELECT FOOD BY USER"))///////////////////
+       else if(input.trim().matches("SELECT FOOD BY USER \\d+"))///////////////////
            NormalFuncs.selectFood(Integer.parseInt(splitted[4]));
        else if(splitted.length==2 && (splitted[0]+" "+splitted[1]).equals("DISPLAY COMMENTS"))///////////////
            NormalFuncs.displayComments();
-       else if(splitted.length>=3 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).equals("ADD NEW COMMENT"))////////////////
+       else if(splitted.length>=4 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).equals("ADD NEW COMMENT"))////////////////
            NormalFuncs.addNewComment(splitted);
        else if(splitted.length>=3 && (splitted[0]+" "+splitted[1]+" "+splitted[2]).matches("EDIT COMMENT \\d+"))////////////////
            NormalFuncs.editComment(Integer.parseInt(splitted[2]),splitted);
@@ -41,7 +43,7 @@ public class InputManager
        else if(input.trim().matches("ACCESS USER ORDER HISTORY"))//////////////////////////////
            NormalFuncs.showOrderHistory();
        else if(input.trim().matches("SELECT ORDER BY USER \\d+"))///////////////////////
-           NormalFuncs.selectOrder(Integer.parseInt(splitted[2]));
+           NormalFuncs.selectOrder(Integer.parseInt(splitted[4]));
        else if(input.trim().equals("DISPLAY CART STATUS"))////////////////////////
            NormalFuncs.showCartStatus();
        else if(input.trim().equals("CONFIRM ORDER"))///////////////////////////
@@ -108,6 +110,10 @@ public class InputManager
            OwnerFuncs.activeOrders();
        else if(input.trim().equals("SHOW ORDER HISTORY"))//////////////////
            OwnerFuncs.orderHistory();
+       else if(input.trim().matches("ADD RESTAURANT [a-zA-Z]+ \\d+"))///////////////
+           OwnerFuncs.addRestaurant(splitted[2],Integer.parseInt(splitted[3]));
+       else if(input.trim().matches("EDIT ORDER \\d+ STATUS [a-zA-Z]+"))/////////////////////////
+           OwnerFuncs.changeOrderStatusManually(Integer.parseInt(splitted[2]), splitted[4]);
        else //////////////////
            System.out.println("invalid command");
    }

@@ -10,6 +10,7 @@ public class Restaurant
     int ID;
     static Restaurant restaurantInuse;
     String name;
+    int count = 0;
     ArrayList<String> foodTypes;
     ArrayList<Food> menu = new ArrayList<>();
     ArrayList<Order> restaurantHistory = new ArrayList<>();

@@ -37,7 +37,10 @@ public class OwnerFuncs {
             if (inuse.ownedRestaurants.size() == 0)
                 System.out.println("YOU HAVE NOT REGISTERED YOUR RESTAURANTS!");
             else if (inuse.ownedRestaurants.size() == 1)
+            {
+                Restaurant.restaurantInuse = inuse.ownedRestaurants.get(0);
                 System.out.println("YOU ARE LOGGED INTO YOUR RESTAURANT ACCOUNT AUTOMATICALLY!");
+            }
             else if (inuse.ownedRestaurants.size() > 1) {
                 for (int i = 0; i < inuse.ownedRestaurants.size() && exist; i++)
                     if (inuse.ownedRestaurants.get(i).ID == restaurantID) {
@@ -121,8 +124,9 @@ public class OwnerFuncs {
         }
     }
 
-    public static boolean checkIfThereIsAnyActiveOrder()////////////////////////////
+    public static boolean checkIfThereIsAnyActiveOrder()throws SQLException////////////////////////////
     {
+        updateOrderActivity();
         for (int i = 0; i < Restaurant.restaurantInuse.restaurantHistory.size(); i++)
             if (!Restaurant.restaurantInuse.restaurantHistory.get(i).status.equals("sent"))
                 return true;
@@ -186,8 +190,9 @@ public class OwnerFuncs {
         }
     }
 
-    public static void showMenu() ///////////////////////////////////
+    public static void showMenu()throws SQLException ///////////////////////////////////
     {
+        updateDiscountActivity();
         if (User.loggedInUser == null)
             System.out.println("LOGIN FIRST!");
         else if (!User.loggedInUser.type.equals("Owner"))
@@ -370,7 +375,7 @@ public class OwnerFuncs {
                 System.out.println("NO SUCH FOOD IN MENU!");
             else if (checkIfThereIsAnyActiveOrder())
                 System.out.println("THERE ARE SOME ACTIVE ORDERS , YOU CAN'T DEACTIVATE THIS FOOD!");
-            else if (Food.findFoodByID(foodID).active == false)
+            else if (!Food.findFoodByID(foodID).active )
                 System.out.println("FOOD IS ALREADY DEACTIVATED!");
             else {
                 try {
@@ -403,7 +408,7 @@ public class OwnerFuncs {
                 System.out.println("NO SUCH FOOD IN MENU!");
             else if (checkIfThereIsAnyActiveOrder())
                 System.out.println("THERE ARE SOME ACTIVE ORDERS , YOU CAN'T ACTIVATE THIS FOOD!");
-            else if (Food.findFoodByID(foodID).active == true)
+            else if (Food.findFoodByID(foodID).active)
                 System.out.println("FOOD IS ALREADY ACTIVATED!");
             else {
                 try {
@@ -419,7 +424,6 @@ public class OwnerFuncs {
             }
         }
     }
-
     public static void SetDiscountFood(int foodID, int amount, int duration) throws SQLException/////////////////////////
     {
         if (User.loggedInUser == null)
@@ -509,10 +513,160 @@ public class OwnerFuncs {
             }
         }
     }
-
-    ////add restaurant _ check discount activity when calculating the price _ AND BEFORE SHOWING MENU IN BOTH USER _ AND ADMIN _
-///UPDATE WHAT YOU UPDATE IN SQL IN THE CODE _ CHECK NODE ID VALIDATION IN NORMAL USER _
-///ORDERFOOD KHALI BOOD KE:) _ map _ suggestion _ security _ tashvighi _DISPLAY RESPONSES _UPDATE ORDERS BEFORE DISPLAY ORDERS
+    public static void addRestaurant(String name , int location)throws SQLException/////////////////////////
+    {
+        if (User.loggedInUser == null)
+            System.out.println("LOGIN FIRST!");
+        else if (!User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A CUSTOMER NOT AN OWNER!");
+        else if(location<1 || location>1000)
+            System.out.println("INVALID LOCATION!");
+        else
+        {
+            Restaurant NEW = new Restaurant(Restaurant.restaurants.size()+1,name,null,Node.getNodeByID(location),(Owner)User.loggedInUser);
+            Restaurant.restaurants.add(NEW);
+            ((Owner)User.loggedInUser).ownedRestaurants.add(NEW);
+            try
+            {
+                if (SQL.connection != null)
+                {
+                    PreparedStatement stm = SQL.connection.prepareStatement("insert into restaurants (location,ownerID,title) values (?,?,?);");
+                    stm.setInt(1, location);
+                    stm.setInt(2, User.loggedInUser.ID);
+                    stm.setString(3, name);
+                    if (stm.executeUpdate() > 0) {
+                        System.out.println("RESTAURANT ADDED SUCCESSFULLY!");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                if (SQL.connection != null)
+                {
+                    PreparedStatement stm = SQL.connection.prepareStatement("insert into user_restaurant (restaurantID,userID) values (?,?);");
+                    stm.setInt(1,Restaurant.restaurants.size());
+                    stm.setInt(2, User.loggedInUser.ID);
+                    stm.executeUpdate();
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+    public static void updateOrderActivity()throws SQLException ///////////////////////////////////////////////
+    {
+        for(int i=0 ; i<Order.allOrders.size() ; i++)
+            if(Order.allOrders.get(i).status.equals("taken"))
+            {
+                String query = "SELECT TIMESTAMPDIFF(MINUTE, whenTaken, NOW()) AS minutes_difference " + "FROM orders " + "WHERE ID = ?";
+                try (PreparedStatement statement = SQL.connection.prepareStatement(query)) {
+                    statement.setInt(1, Order.allOrders.get(i).ID);
+                    ResultSet resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        int minutesDifference = resultSet.getInt("minutes_difference");
+                        int Duration = 0;
+                        String query1 = "SELECT DURATION FROM orders WHERE ID = ?";
+                        try (PreparedStatement statement1 = SQL.connection.prepareStatement(query1)) {
+                            statement1.setInt(1, Order.allOrders.get(i).ID);
+                            ResultSet resultSet1 = statement1.executeQuery();
+                            if (resultSet1.next()) {
+                                Duration = resultSet1.getInt("DURATION");
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        if (Duration - minutesDifference <= 0)
+                        {
+                            Order.allOrders.get(i).status = "sent";
+                            String query2 = "UPDATE orders SET orderStatus = ? WHERE ID = ?";
+                            PreparedStatement statement1 = SQL.connection.prepareStatement(query2);
+                            statement1.setString(1, "sent");
+                            statement1.setInt(2, Order.allOrders.get(i).ID);
+                            int rowsAffected = statement1.executeUpdate();
+                            if(rowsAffected<=0)
+                                System.out.println("Failed to make connection!");
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+    }
+    public static void updateDiscountActivity()throws SQLException////////////////////////////////
+    {
+        for(int i=0 ; i<Food.foods.size() ; i++)
+            if(Food.foods.get(i).discount!=null) {
+                String query = "SELECT TIMESTAMPDIFF(MINUTE, activationTime, NOW()) AS minutes_difference " + "FROM discount " + "WHERE ID = ?";
+                try (PreparedStatement statement = SQL.connection.prepareStatement(query)) {
+                    statement.setInt(1, Food.foods.get(i).discount.ID);
+                    ResultSet resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        int minutesDifference = resultSet.getInt("minutes_difference");
+                        int Duration = 0;
+                        String query1 = "SELECT DURATION FROM discount WHERE ID = ?";
+                        try (PreparedStatement statement1 = SQL.connection.prepareStatement(query1)) {
+                            statement1.setInt(1, Food.foods.get(i).discount.ID);
+                            ResultSet resultSet1 = statement1.executeQuery();
+                            if (resultSet1.next()) {
+                                Duration = resultSet1.getInt("DURATION");
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        if (Duration - minutesDifference <= 0)
+                        {
+                            Food.foods.get(i).discount.active = false;
+                            String query2 = "UPDATE discount SET activity = ? WHERE ID = ?";
+                            PreparedStatement statement1 = SQL.connection.prepareStatement(query2);
+                            statement1.setBoolean(1, false);
+                            statement1.setInt(2, Food.foods.get(i).discount.ID);
+                            int rowsAffected = statement1.executeUpdate();
+                            if(rowsAffected<=0)
+                                System.out.println("Failed to make connection!");
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+    }
+    public static void changeOrderStatusManually(int orderID, String status)throws SQLException//////////////////////////////////
+    {
+        if (User.loggedInUser == null)
+            System.out.println("LOGIN FIRST!");
+        else if (!User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE A CUSTOMER NOT AN OWNER!");
+        else
+        {
+            Owner inuse = (Owner) User.loggedInUser;
+            if (inuse.ownedRestaurants.size() == 0)
+                System.out.println("YOU OWN NO RESTAURANTS!");
+            else if (Restaurant.restaurantInuse == null || !inuse.ownedRestaurants.contains(Restaurant.restaurantInuse))
+                System.out.println("PLEASE SELECT YOUR RESTAURANT FIRST!");
+            else if (Order.findOrderByID(orderID) == null || !Restaurant.restaurantInuse.restaurantHistory.contains(Order.findOrderByID(orderID)))
+                System.out.println("THIS ORDER IS NOT RELATED TO YOUR RESTAURANT!");
+            else if(!(status.equals("sending") || status.equals("taken") || status.equals("sent")))
+                System.out.println("INVALID STATUS!");
+            else
+            {
+                String query = "UPDATE orders SET orderStatus = ? WHERE ID = ?";
+                PreparedStatement statement = SQL.connection.prepareStatement(query);
+                statement.setString(1, status);
+                statement.setInt(2, orderID);
+                int rowsAffected = statement.executeUpdate();
+                if(rowsAffected>0)
+                    System.out.println("STATUS UPDATED SUCCESSFULLY!");
+                Order.findOrderByID(orderID).status = status;
+            }
+        }
+    }
+/// map _ suggestion _ tashvighi
     public static void selectFoodToResponse(int foodID)///////////////////////////////
     {
         if (User.loggedInUser == null)
@@ -677,6 +831,7 @@ public class OwnerFuncs {
     }
     public static void activeOrders() throws SQLException//////////////////////////
     {
+        updateOrderActivity();
         if (User.loggedInUser == null)
             System.out.println("LOGIN FIRST!");
         else if (!User.loggedInUser.type.equals("Owner"))

@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 public class Normal extends User
 {
-    Double charge;
     Node location;
     Order deliver;
     ArrayList<Food> cart = new ArrayList<>();

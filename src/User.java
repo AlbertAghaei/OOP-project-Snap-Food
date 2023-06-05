@@ -6,12 +6,12 @@ abstract public class User
 {
     int ID;
     String username;
+    Double charge;
+
     String password;
     String type;///Owner or Normal
     static User loggedInUser;
     static ArrayList<User> allUsers = new ArrayList<>();
-    String securityQuestion;///enums might be needed
-    String securityAnswer;
     User(int ID,String username, String password, String type)
     {
         this.ID = ID;
@@ -107,7 +107,7 @@ abstract public class User
                 String username = resultSet.getString("Username");
                 if(Class.equals("Owner"))
                 {
-                    Owner inuse = new Owner(id,username,pass,Class);
+                    Owner inuse = new Owner(id,username,pass,Class,charge);
                     allUsers.add(inuse);
                 }
                 else if(Class.equals("Normal"))

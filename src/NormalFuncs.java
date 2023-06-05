@@ -1,9 +1,49 @@
+import com.mysql.cj.jdbc.exceptions.SQLError;
+
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class NormalFuncs
 {
+    public static void suggest()////////////////////////////////////////////
+    {
+        if(User.loggedInUser==null)
+            System.out.println("LOGIN FIRST!");
+        else if(User.loggedInUser.type.equals("Owner"))
+            System.out.println("YOU ARE AN OWNER NOT A CUSTOMER!");
+        else
+        {
+            ArrayList<Restaurant> used = new ArrayList<>();
+            for(int i=0 ; i<((Normal)User.loggedInUser).userHistory.size(); i++)
+            {
+                findRestaurantByOrderID(((Normal)User.loggedInUser).userHistory.get(i).ID).count++;
+                if(!used.contains(findRestaurantByOrderID(((Normal)User.loggedInUser).userHistory.get(i).ID)))
+                    used.add(findRestaurantByOrderID(((Normal)User.loggedInUser).userHistory.get(i).ID));
+            }
+            int count = Math.min(used.size(),5);
+
+            System.out.println("SUGGESTIONS: (MAX = 5) BASED ON RATING AND NUMBER OF TIMES CHOSEN BY YOU");
+            Collections.sort(used, new Comparator<Restaurant>() {
+                @Override
+                public int compare(Restaurant r1, Restaurant r2) {
+                    int counterComparison = Integer.compare(r2.count, r1.count);
+                    if (counterComparison == 0)
+                        return Double.compare(calculateTotalRestaurantRating(r2), calculateTotalRestaurantRating(r1));
+                    return counterComparison;
+                }
+            });
+
+            for (int i=0; i<count; i++)
+                System.out.println(used.get(i).ID +" "+used.get(i).name);
+
+        }
+        for(int i=0; i<Restaurant.restaurants.size(); i++)
+            Restaurant.restaurants.get(i).count = 0;
+    }
     public static void showAllAvailableRestaurants()//////////////////////////////////////////////
     {
        if(User.loggedInUser==null)
@@ -86,8 +126,9 @@ public class NormalFuncs
                 System.out.println("NOTHING FOUND!");
         }
     }
-    public static void selectFood(int foodID)////////////////////////////////////////////////////////////
+    public static void selectFood(int foodID)throws SQLException////////////////////////////////////////////////////////////
     {
+        OwnerFuncs.updateDiscountActivity();
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
         else if(User.loggedInUser.type.equals("Owner"))
@@ -99,11 +140,11 @@ public class NormalFuncs
         else
         {
             Food.foodInuse=Food.findFoodByID(foodID);
-            if(Food.foodInuse.active==true)
+            if(Food.foodInuse.active)
                 System.out.println("AVAILABILITY: available");
             else
                 System.out.println("AVAILABILITY: unavailable");
-            if(Food.foodInuse.discount!=null && Food.foodInuse.discount.active==true)
+            if(Food.foodInuse.discount!=null && Food.foodInuse.discount.active)
                 System.out.println("DISCOUNT PERCENT: "+Food.foodInuse.discount.percent+"%");
             else
                 System.out.println("DISCOUNT PERCENT: 0%");
@@ -122,8 +163,11 @@ public class NormalFuncs
         else
         {
             System.out.println("COMMENTS:");
-            for(int i=0; i<Food.foodInuse.comments.size(); i++)
+            for(int i=0; i<Food.foodInuse.comments.size(); i++){
                 System.out.println(Food.foodInuse.comments.get(i).ID+" USER: "+Food.foodInuse.comments.get(i).user.username + " COMMENT: "+ Food.foodInuse.comments.get(i).text);
+            if(Food.foodInuse.comments.get(i).response!=null)
+                System.out.println("    RESPONSE: "+Food.foodInuse.comments.get(i).response.massage+"  OWNER: "+Food.foodInuse.comments.get(i).response.owner.username);
+            }
             if(Food.foodInuse.comments.size()==0)
                 System.out.println("NO COMMENTS YET!");
         }
@@ -324,7 +368,7 @@ public class NormalFuncs
             System.out.println("YOU HAVE SELECTED NO RESTAURANTS!");
         else if(Food.findFoodByID(foodID)==null || !Restaurant.restaurantInuse.menu.contains(Food.findFoodByID(foodID)))
             System.out.println("THIS RESTAURANT MENU DOES NOT HAVE A FOOD WITH THE CHOSEN ID!");
-        else if(Food.findFoodByID(foodID).active==false)
+        else if(!Food.findFoodByID(foodID).active)
             System.out.println("THE CHOSEN FOOD IS NOT AVAILABLE RIGHT NOW!");
         else
         {
@@ -357,26 +401,33 @@ public class NormalFuncs
                     return Restaurant.restaurants.get(i);
         return null;
     }
-    public static double calculateOrderCost(Order order)//////////////////////////////////
+    public static double calculateOrderCost(Order order)throws SQLException//////////////////////////////////
     {
+        OwnerFuncs.updateDiscountActivity();
         double sum=0;
         for(int i=0; i<order.orderedFoods.size(); i++)
         {
-            if(order.orderedFoods.get(i).discount==null || order.orderedFoods.get(i).discount.percent==0 )
+            if(order.orderedFoods.get(i).discount==null || order.orderedFoods.get(i).discount.percent==0 || !order.orderedFoods.get(i).discount.active  )
                 sum+=order.orderedFoods.get(i).price;
             else
                 sum+=order.orderedFoods.get(i).price*(double)order.orderedFoods.get(i).discount.percent/100;
         }
         return sum;
     }
-    public static double calculateCartCost(Normal user)//////////////////////////////////
+    public static double calculateCartCost(Normal user)throws SQLException//////////////////////////////////
     {
+        OwnerFuncs.updateDiscountActivity();
         double sum=0;
         for(int i=0; i<user.cart.size(); i++)
-            sum+=user.cart.get(i).price;
+        {
+            if(user.cart.get(i).discount==null || user.cart.get(i).discount.percent==0 || !user.cart.get(i).discount.active  )
+                sum+=user.cart.get(i).price;
+            else
+                sum+=user.cart.get(i).price*(double)user.cart.get(i).discount.percent/100;
+        }
         return sum;
     }
-    public static void selectOrder(int orderID)////////////////////////////////////////////////
+    public static void selectOrder(int orderID)throws SQLException////////////////////////////////////////////////
     {
         Normal customer = null;
         if(User.loggedInUser!=null)
@@ -431,6 +482,7 @@ public class NormalFuncs
         else
         {
             customer.charge-=calculateCartCost(customer);
+            Restaurant.restaurantInuse.owner.charge+=calculateCartCost(customer);
             Order NEW = new Order(Order.allOrders.size()+1,customer.cart,calculateCartCost(customer),"sending");
             ArrayList<Food> temp = new ArrayList<>(customer.cart);
             NEW.orderedFoods = temp;
@@ -444,6 +496,13 @@ public class NormalFuncs
             statement.setDouble(1, customer.charge);
             statement.setInt(2, User.loggedInUser.ID);
             int rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            query = "UPDATE users SET Charge = ? WHERE ID = ?";
+            statement = SQL.connection.prepareStatement(query);
+            statement.setDouble(1, Restaurant.restaurantInuse.owner.charge);
+            statement.setInt(2, Restaurant.restaurantInuse.owner.ID);
+            rowsAffected = statement.executeUpdate();
             if(rowsAffected<=0)
                 System.out.println("Failed to make connection!");
             query = "INSERT INTO restaurant_order(restaurantID,orderID) VALUES ( ?, ?)";
@@ -479,6 +538,11 @@ public class NormalFuncs
             }
             System.out.println("TYPE YOUR LOCATION(NODE ID):");
             int nodeID = Integer.parseInt(Main.input.nextLine());
+            while(nodeID<1 || nodeID>1000 )
+            {
+                System.out.println("INVALID LOCATION!  TYPE YOUR LOCATION AGAIN (NODE ID):");
+                nodeID = Integer.parseInt(Main.input.nextLine());
+            }
             customer.location = Node.getNodeByID(nodeID);
             query = "UPDATE users SET location = ? WHERE ID = ?";
             statement = SQL.connection.prepareStatement(query);
@@ -538,8 +602,9 @@ public class NormalFuncs
         int time = Graph.calculateTime(firstNode,secondNode);
         return (double)time/5;
     }
-    public static void showUnSent()//////////////////////////////////////////////
+    public static void showUnSent()throws SQLException//////////////////////////////////////////////
     {
+        OwnerFuncs.updateOrderActivity();
         if(User.loggedInUser==null)
             System.out.println("LOGIN FIRST!");
         else if(User.loggedInUser.type.equals("Owner"))
@@ -606,6 +671,11 @@ public class NormalFuncs
                 System.out.println("Failed to make connection!");
             System.out.println("GIVE US YOUR LOCATION (NODE ID) :");
             int nodeID = Integer.parseInt(Main.input.nextLine().trim());
+            while(nodeID<1 || nodeID>1000 )
+            {
+                System.out.println("INVALID LOCATION!  TYPE YOUR LOCATION AGAIN (NODE ID):");
+                nodeID = Integer.parseInt(Main.input.nextLine());
+            }
             query = "UPDATE users SET location = ? WHERE ID = ?";
             statement = SQL.connection.prepareStatement(query);
             statement.setInt(1, nodeID);

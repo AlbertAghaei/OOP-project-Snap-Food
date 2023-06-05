@@ -18,6 +18,7 @@ public class Main
         Restaurant.getAllRestaurantsFromDataBaseAndTypesAndMenuAndHistory();
         User.getHistoryAndOwnedRestaurantsFromDataBase();
         User.readDeliveryUserFromDataBase();
+        Bonus.readBonusFromDataBase();
         while (true)
         {
             String to_be_checked = input.nextLine();
