@@ -425,6 +425,72 @@ public class NormalFuncs
             else
                 sum+=user.cart.get(i).price*(double)user.cart.get(i).discount.percent/100;
         }
+        ////////////// Bonus
+        int percentage=0;
+        if(sum>=25&&sum<50)
+          percentage = 5;
+        else if(sum>=50&&sum<100)
+            percentage =10;
+        else if(sum>=100)
+            percentage = 20;
+        if(percentage!=0)
+        { Bonus.allBonuses.add(new Bonus(Bonus.allBonuses.size()+1,(Normal)User.loggedInUser,false,percentage ));
+            //add in sql column : code(int),userID,used,discount
+            String query = "INSERT INTO Bonus (ID,used,userID,discount) VALUES ( ?, ?,?,?)";
+            PreparedStatement statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, Bonus.allBonuses.size());
+            statement.setInt(3, User.loggedInUser.ID);
+            statement.setBoolean(2,false);
+            statement.setInt(4,percentage);
+            int rowsAffected = statement.executeUpdate();
+            if(rowsAffected<=0)
+                System.out.println("Failed to make connection!");
+            System.out.println("Congratulation! You have earned a"+percentage+"% discount. Discount code = "+Bonus.allBonuses.size());
+            System.out.println("Do you want to see your discount codes ? (Answer by \" YES \" or \" NO \"");
+            String answer=new String("");
+            Main.input.nextLine();
+            ArrayList <Integer> bonusIndexInAllBonus = new ArrayList<>();
+            ArrayList <Integer> discountCodes = new ArrayList<>();
+            if(answer.equals("YES"))
+            {for(int i=0;i<Bonus.allBonuses.size();i++)
+            {if(Bonus.allBonuses.get(i).user.ID==User.loggedInUser.ID)
+            {if(!Bonus.allBonuses.get(i).used)
+            {System.out.println("Discount = "+Bonus.allBonuses.get(i).discount +"%   Discount code = "+Bonus.allBonuses.get(i).code);
+            bonusIndexInAllBonus.add(i);
+            discountCodes.add(Bonus.allBonuses.get(i).code);
+            }
+            }
+            }
+            if(bonusIndexInAllBonus.size()!=0)
+            {
+                System.out.println("DO you want to use a discount code? (Answer by \" YES \" or \" NO \")");
+                answer=Main.input.nextLine();
+                if(answer.equals("YES"))
+                {
+                    System.out.println("Please enter your discount code");
+                    int code = Main.input.nextInt();
+                    if(discountCodes.contains(code))
+                    {int inUsedDiscountIndex = bonusIndexInAllBonus.get(discountCodes.indexOf(code));
+                        int inUsedDiscountAmount =Bonus.allBonuses.get(inUsedDiscountIndex).discount;
+                        sum = sum-sum * inUsedDiscountAmount/100;
+                        System.out.println("You have received a discount of "+inUsedDiscountAmount + "% on your purchase.");
+                        Bonus.allBonuses.get(inUsedDiscountIndex).used=true;
+                        //update in bonus used sql
+                        query = "UPDATE Bonus SET used = ? WHERE ID = ?";
+                         statement = SQL.connection.prepareStatement(query);
+                        statement.setBoolean(1, true);
+                        statement.setInt(2, code);
+                         rowsAffected = statement.executeUpdate();
+                        if(rowsAffected<=0)
+                            System.out.println("Failed to make connection!");
+                    }
+                    else System.out.println("Invalid Code!!");
+                }
+            }
+              else  System.out.println("There is no discount codes for you!!!");
+            }
+        }
+
         return sum;
     }
     public static void selectOrder(int orderID)throws SQLException////////////////////////////////////////////////

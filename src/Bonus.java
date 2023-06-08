@@ -9,11 +9,13 @@ public class Bonus
     int code;
     Normal user;
     boolean used ;
-    Bonus(int code, Normal user, boolean used)
+    int discount; //5% 10% 20%
+    Bonus(int code, Normal user, boolean used,int discount)
     {
         this.code = code;
         this.user = user;
         this.used = used;
+        this.discount = discount; //percentage
     }
     public static Bonus findBonusByID(int id)
     {
@@ -34,8 +36,9 @@ public class Bonus
                 int code = resultSet.getInt("ID");
                 boolean used = resultSet.getBoolean("used");
                 int userID = resultSet.getInt("userID");
+                int percentage = resultSet.getInt("discount");
 
-                Bonus created = new Bonus(code,(Normal)User.findUserByID(userID),used);
+                Bonus created = new Bonus(code,(Normal)User.findUserByID(userID),used,percentage);
                 allBonuses.add(created);
 
             }
