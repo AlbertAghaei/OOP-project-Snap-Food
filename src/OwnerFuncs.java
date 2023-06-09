@@ -23,7 +23,7 @@ public class OwnerFuncs {
         }
     }
 
-    public static Restaurant selectRestaurant(int restaurantID) ////////////////////////////////
+    public static Restaurant selectRestaurant(int restaurantID) ///////////////////////////////
     {
         boolean exist = true;
         if (User.loggedInUser == null) {
