@@ -414,17 +414,84 @@ public class NormalFuncs
         }
         return sum;
     }
-    public static double calculateCartCost(Normal user)throws SQLException//////////////////////////////////
+    public static double calculateCartCost(Normal user, boolean last)throws SQLException//////////////////////////////////
     {
         OwnerFuncs.updateDiscountActivity();
-        double sum=0;
-        for(int i=0; i<user.cart.size(); i++)
-        {
-            if(user.cart.get(i).discount==null || user.cart.get(i).discount.percent==0 || !user.cart.get(i).discount.active  )
-                sum+=user.cart.get(i).price;
+        double sum = 0;
+        for (int i = 0; i < user.cart.size(); i++) {
+            if (user.cart.get(i).discount == null || user.cart.get(i).discount.percent == 0 || !user.cart.get(i).discount.active)
+                sum += user.cart.get(i).price;
             else
-                sum+=user.cart.get(i).price*(double)user.cart.get(i).discount.percent/100;
+                sum += user.cart.get(i).price * (double) user.cart.get(i).discount.percent / 100;
         }
+        ////////////// Bonus
+        if(last)
+        {
+        int percentage = 0;
+        if (sum >= 25 && sum < 50)
+            percentage = 5;
+        else if (sum >= 50 && sum < 100)
+            percentage = 10;
+        else if (sum >= 100)
+            percentage = 20;
+        if (percentage != 0) {
+            Bonus.allBonuses.add(new Bonus(Bonus.allBonuses.size() + 1, (Normal) User.loggedInUser, false, percentage));
+            String query = "INSERT INTO Bonus (ID,used,userID,discount) VALUES ( ?, ?,?,?)";
+            PreparedStatement statement = SQL.connection.prepareStatement(query);
+            statement.setInt(1, Bonus.allBonuses.size());
+            statement.setInt(3, User.loggedInUser.ID);
+            statement.setBoolean(2, false);
+            statement.setInt(4, percentage);
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected <= 0)
+                System.out.println("Failed to make connection!");
+            System.out.println("Congratulation! You have earned a " + percentage + "% discount. Discount code = " + Bonus.allBonuses.size());
+            System.out.println("Do you want to see your discount codes ? (Answer by \" YES \" or \" NO \")");
+            String answer = Main.input.nextLine();
+            ArrayList<Integer> bonusIndexInAllBonus = new ArrayList<>();
+            ArrayList<Integer> discountCodes = new ArrayList<>();
+            if (answer.equals("YES")) {
+                for (int i = 0; i < Bonus.allBonuses.size(); i++) {
+                    if (Bonus.allBonuses.get(i).user.ID == User.loggedInUser.ID) {
+                        if (!Bonus.allBonuses.get(i).used) {
+                            System.out.println("Discount = " + Bonus.allBonuses.get(i).discount + "%   Discount code = " + Bonus.allBonuses.get(i).code);
+                            bonusIndexInAllBonus.add(i);
+                            discountCodes.add(Bonus.allBonuses.get(i).code);
+                        }
+                    }
+                }
+                if (bonusIndexInAllBonus.size() != 0) {
+                    System.out.println("DO you want to use a discount code? (Answer by \" YES \" or \" NO \")");
+                    answer = Main.input.nextLine();
+                    if (answer.equals("YES")) {
+                        System.out.println("Please enter your discount code:");
+                        int code = Integer.parseInt(Main.input.nextLine());
+                        if (discountCodes.contains(code)) {
+                            int inUsedDiscountIndex = bonusIndexInAllBonus.get(discountCodes.indexOf(code));
+                            int inUsedDiscountAmount = Bonus.allBonuses.get(inUsedDiscountIndex).discount;
+                            ///
+                            System.out.println(sum);
+                            System.out.println(inUsedDiscountAmount);
+                            sum = sum - (sum * inUsedDiscountAmount / 100);
+                            ///
+                            System.out.println(sum);
+
+                            System.out.println("You have received a discount of " + inUsedDiscountAmount + "% on your purchase.");
+                            Bonus.allBonuses.get(inUsedDiscountIndex).used = true;
+                            query = "UPDATE Bonus SET used = ? WHERE ID = ?";
+                            statement = SQL.connection.prepareStatement(query);
+                            statement.setBoolean(1, true);
+                            statement.setInt(2, code);
+                            rowsAffected = statement.executeUpdate();
+                            if (rowsAffected <= 0)
+                                System.out.println("Failed to make connection!");
+                        } else System.out.println("INVALID CODE!");
+                    }
+                } else System.out.println("THERE IS NO DISCOUNT FOR YOU!");
+            }
+        }
+    }
+        //////////
         return sum;
     }
     public static void selectOrder(int orderID)throws SQLException////////////////////////////////////////////////
@@ -477,13 +544,14 @@ public class NormalFuncs
             System.out.println("YOU ARE AN OWNER NOT A CUSTOMER!");
         else if(customer.cart.size()==0)
             System.out.println("CART IS EMPTY!");
-        else if(calculateCartCost(customer)> customer.charge)
+        else if(calculateCartCost(customer,false)> customer.charge)
             System.out.println("CHARGE YOUR ACCOUNT FIRST!");
         else
         {
-            customer.charge-=calculateCartCost(customer);
-            Restaurant.restaurantInuse.owner.charge+=calculateCartCost(customer);
-            Order NEW = new Order(Order.allOrders.size()+1,customer.cart,calculateCartCost(customer),"sending");
+            double cost = calculateCartCost(customer,true);
+            customer.charge-=cost;
+            Restaurant.restaurantInuse.owner.charge+=cost;
+            Order NEW = new Order(Order.allOrders.size()+1,customer.cart,cost,"sending");
             ArrayList<Food> temp = new ArrayList<>(customer.cart);
             NEW.orderedFoods = temp;
             customer.cart.clear();
